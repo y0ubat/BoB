@@ -29,10 +29,12 @@ prologue = 0
 check = 0
 arg_count = 0
 
-f = open("C:\Users\y0ubat\Desktop\hex-ray.c","w")
+f = open("C:\Users\y0ubat\Desktop\hex-ray00.c","w")
 f.write("int " + GetFunctionName(addr) + "()\n{\n")
 
 for h in FuncItems(hexray):
+	check = 0
+
 	if "xor     eax, eax" == GetDisasm(h):
 		prologue = 1
 		continue
@@ -58,29 +60,41 @@ for h in FuncItems(hexray):
 		else:
 			op2 = findall(r"var_[(0-9a-fA-F)]{1,}",op2)
 
-		if index_serach(op2,reg) >= 0:
+		if index_serach(op2,reg) >= 0:    # if op2 reg
 			check = 1
 			if op1[0].find("var_") >= 0:
 				f.write("\tint " + str(op1[0]) + "= " + str(tmp[index_serach(op2,reg)])+";\n")
 
-		if index_serach(op1,reg) >= 0:
+
+		if index_serach(op1,reg) >= 0:     # if op1 reg
 			if op2[0].find("var_") >= 0:
 				tmp[index_serach(op1,reg)] = str(op2[0])
 				print tmp
 			else:
-				if op2.find("h") >= 0:
-					op2 = op2.split('h')[0]
-				if isNumber(int(op2,16)):
-					tmp[index_serach(op1,reg)] = str(op2)
+				if check == 1:              # op2 check 
+					pass
+				else:
+					if op2.find("h") >= 0:
+						op2 = op2.split('h')[0]
+						tmp[index_serach(op1,reg)] = str(int(op2,16))
+					else:
+						if isNumber(op2):
+							tmp[index_serach(op1,reg)] = str(op2)
 
-		if op1[0].find("var_") >= 0:
-			if op2.find("h") >= 0:
-				op2 = op2.split('h')[0]
+
+
+		if op1[0].find("var_") >= 0:   # if op1 var 
 			if check == 1:
 				pass
-			elif isNumber(int(op2,16)):
-				f.write("\tint " + op1[0]+"="+ str(int(op2,16))+";\n")
+			else:		    
+				if op2.find("h") >= 0:
+					op2 = op2.split('h')[0]
+					f.write("\tint " + op1[0]+"="+ str(int(op2,16))+";\n")
+				else:
+					if isNumber(op2):
+						f.write("\tint " + op1[0]+"="+ str(op2)+";\n")
 
+			
 
 	if "lea" == ins:
 		if findall(r"var_[(0-9a-fA-F)]{1,}",op2) == []:
